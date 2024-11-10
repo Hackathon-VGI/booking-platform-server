@@ -1,5 +1,5 @@
-Flask
+Flask==2.3.2
+Flask-PyMongo==2.3.0
+pymongo==4.5.0
+python-dotenv==1.0.0
 Flask-Cors
-psycopg2-binary
-Flask-SQLAlchemy
-Flask-Migrate
