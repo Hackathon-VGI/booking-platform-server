@@ -3,3 +3,6 @@ Flask-Cors
 psycopg2-binary
 Flask-SQLAlchemy
 Flask-Migrate
+pandas
+pymongo
+python-dotenv
