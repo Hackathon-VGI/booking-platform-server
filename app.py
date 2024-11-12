@@ -5,6 +5,7 @@ from extensions import db
 
 def create_app():
     app = Flask(__name__)
+    
     # Load configurations from Config class
     app.config.from_object(Config)
     

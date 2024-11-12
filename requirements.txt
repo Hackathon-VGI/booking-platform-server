@@ -1,3 +1,4 @@
+
 Flask
 Flask-Cors
 psycopg2-binary
@@ -6,3 +7,4 @@ Flask-Migrate
 pandas
 pymongo
 python-dotenv
+
