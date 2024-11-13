@@ -14,8 +14,6 @@ db = client["Booking-App-VGI"]
 user_trip_details = db["user_trip_details"]
 
 # Define the route to accept user data
-
-
 @app.route("/api/book-trip", methods=["POST"])
 def book_trip():
     # Get data from the request
