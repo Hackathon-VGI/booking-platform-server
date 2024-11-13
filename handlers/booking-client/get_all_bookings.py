@@ -5,8 +5,6 @@ import os
 import certifi
 
 
-
-
 app = Flask(__name__)
 CORS(app)
 
@@ -15,7 +13,7 @@ CORS(app)
 MONGO_URI="mongodb+srv://zainanwer24:osyP2q9A6L83y4Ku@booking-platform.w3axp.mongodb.net/"
 mongo_uri = MONGO_URI
 
-client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
+client = MongoClient(mongo_uri, tls=True, tlsCAFile=certifi.where())
 db = client["Booking-App-VGI"]
 stop_times = db["stop_times"]
 user_trip_details = db["user_trip_details"]
@@ -77,6 +75,3 @@ def get_trip(email):
 
 if __name__ == "__main__":
     app.run() 
-
-with app.app_context():
-    get_trip("john.doe@example.com")
