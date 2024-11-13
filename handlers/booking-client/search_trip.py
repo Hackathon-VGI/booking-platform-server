@@ -6,6 +6,7 @@ import certifi
 import gtfs_to_mongo as utils
 
 app = Flask(__name__)
+# Update to match your frontend's URL
 CORS(app)
 
 
