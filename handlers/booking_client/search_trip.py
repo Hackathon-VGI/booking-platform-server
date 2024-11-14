@@ -1,52 +1,16 @@
-from flask import Flask, request, jsonify
-from pymongo import MongoClient
-from flask_cors import CORS
-import os
-import certifi
-import gtfs_to_mongo as utils
+from flask import request, jsonify
+from utils import get_bus_number
+from extensions import get_mongo_db
+from utils.time_conversion import adjust_time, time_in_seconds
+from utils.gtfs_to_mongo import find_trips
+# import gtfs_to_mongo as utils
 
-app = Flask(__name__)
-# Update to match your frontend's URL
-CORS(app)
-
-
-# Initialize MongoDB client
-mongo_uri = os.getenv("MONGO_URI")
-client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
-db = client["Booking-App-VGI"]
-stop_times = db["stop_times"]
-stops = db["stops"]
-
-# util functions
+mongo_db = get_mongo_db()
+stop_times = mongo_db["stop_times"]
+stops = mongo_db["stops"]
 
 
-def get_bus_number(trip_id):
-    trip_id = trip_id.split(":")
-    return trip_id[0]
 
-
-def time_in_seconds(time):
-    splitted_time = time.split(":")
-    hours = int(splitted_time[0])
-    mins = int(splitted_time[1])
-    seconds = int(splitted_time[2])
-
-    time_seconds = (hours*3600) + (mins*60) + (seconds)
-    return time_seconds
-
-
-def adjust_time(time_str):
-    parts = time_str.split(":")
-    hours = int(parts[0])
-    if hours >= 24:
-        hours -= 24
-        parts[0] = f"{hours:02d}"
-    return ":".join(parts)
-
-# Define the route to search trips
-
-
-@app.route("/api/search-trip", methods=["POST"])
 def search_trips():
     trip_details = request.json
 
@@ -60,7 +24,7 @@ def search_trips():
     departure_time = trip_details.get('departure_time')
     departure_time_seconds = time_in_seconds(departure_time)
 
-    all_trips = utils.find_trips(departure_stop, arrival_stop)
+    all_trips = find_trips(departure_stop, arrival_stop)
 
     valid_routes = []
 
@@ -89,7 +53,3 @@ def search_trips():
         "required_seats": required_seats,
         "departure_date": departure_date
     })
-
-
-if __name__ == "__main__":
-    app.run(debug=True)

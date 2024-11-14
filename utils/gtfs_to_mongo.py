@@ -1,18 +1,10 @@
-import os
 import pandas as pd
-from pymongo import MongoClient
-from dotenv import load_dotenv
+from extensions import get_mongo_db
 
-# Load environment variables
-load_dotenv()
-MONGO_URI = os.getenv("MONGO_URI")
-print(MONGO_URI)
 
-# MongoDB client setup
-# client = MongoClient(MONGO_URI)
-client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True)
-
-db = client['Booking-App-VGI']  # Specify your database name
+mongo_db = get_mongo_db()
+stops_collection = mongo_db['stops']
+stop_times_collection = mongo_db['stop_times']
 
 def import_gtfs_to_mongodb(stops_file, stop_times_file):
     # Read stops.txt and stop_times.txt files into dataframes
@@ -22,10 +14,6 @@ def import_gtfs_to_mongodb(stops_file, stop_times_file):
     # Convert dataframes to dictionaries
     stops_data = stops_df.to_dict(orient="records")
     stop_times_data = stop_times_df.to_dict(orient="records")
-
-    # Insert data into MongoDB
-    stops_collection = db['stops']
-    stop_times_collection = db['stop_times']
 
     # Clear previous data to avoid duplicates
     stops_collection.delete_many({})
@@ -41,7 +29,6 @@ def import_gtfs_to_mongodb(stops_file, stop_times_file):
 # import_gtfs_to_mongodb(r'C:\Users\anand\PycharmProjects\fletter\GTFS\stops.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\stop_times.txt')
 def get_all_stops():
     # Query the stops collection and retrieve all stop names
-    stops_collection = db['stops']
     stop_names = stops_collection.distinct("stop_name")  # Use 'distinct' to get unique stop names
     return stop_names
 
@@ -53,13 +40,10 @@ def find_trips(from_stop, to_stop):
     Args:
         from_stop (str): Name of the departure stop
         to_stop (str): Name of the destination stop
-    """
-    # Get the collections
-    stops_collection = db['stops']
-    stop_times_collection = db['stop_times']
+    """ 
 
     # Debug: Print the stop names we're searching for
-    print(f"Searching for trips from '{from_stop}' to '{to_stop}'")
+    # print(f"Searching for trips from '{from_stop}' to '{to_stop}'")
 
     # Get stop IDs for both stops
     # Convert stop_ids to both string and integer forms to handle different formats
@@ -85,14 +69,14 @@ def find_trips(from_stop, to_stop):
             to_stop_ids.append(stop['stop_id'])  # Keep original if can't convert
 
     # Debug: Print the stop IDs we found
-    print(f"From stop IDs: {from_stop_ids}")
-    print(f"To stop IDs: {to_stop_ids}")
+    # print(f"From stop IDs: {from_stop_ids}")
+    # print(f"To stop IDs: {to_stop_ids}")
 
     if not from_stop_ids:
-        print(f"No stop found with name '{from_stop}'")
+        # print(f"No stop found with name '{from_stop}'")
         return
     if not to_stop_ids:
-        print(f"No stop found with name '{to_stop}'")
+        # print(f"No stop found with name '{to_stop}'")
         return
 
     # Find all trip_ids that contain the departure stop
@@ -101,7 +85,7 @@ def find_trips(from_stop, to_stop):
     })
 
     # Debug: Print number of potential trips found
-    print(f"Found {len(potential_trips)} potential trips")
+    # print(f"Found {len(potential_trips)} potential trips")
 
     valid_trips = []
 
@@ -137,16 +121,16 @@ def find_trips(from_stop, to_stop):
                 break
 
     # Output results
-    if valid_trips:
-        print(f"\nTrips from '{from_stop}' to '{to_stop}':")
-        for trip in valid_trips:
-            print(f"Trip ID: {trip['trip_id']}")
-            print(f"From Stop ID: {trip['from_stop_id']}")
-            print(f"To Stop ID: {trip['to_stop_id']}")
-            print(f"Departure: {trip['departure_time']}")
-            print(f"Arrival: {trip['arrival_time']}\n")
-    else:
-        print(f"\nNo trips found from '{from_stop}' to '{to_stop}'.")
+    # if valid_trips:
+    #     print(f"\nTrips from '{from_stop}' to '{to_stop}':")
+    #     for trip in valid_trips:
+    #         print(f"Trip ID: {trip['trip_id']}")
+    #         print(f"From Stop ID: {trip['from_stop_id']}")
+    #         print(f"To Stop ID: {trip['to_stop_id']}")
+    #         print(f"Departure: {trip['departure_time']}")
+    #         print(f"Arrival: {trip['arrival_time']}\n")
+    # else:
+    #     print(f"\nNo trips found from '{from_stop}' to '{to_stop}'.")
 
     return valid_trips
 

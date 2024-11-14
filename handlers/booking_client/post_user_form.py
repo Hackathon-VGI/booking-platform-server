@@ -1,20 +1,11 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from pymongo import MongoClient
-import os
-import certifi
+from flask import request, jsonify
+from extensions import get_mongo_db
 
-app = Flask(__name__)
-CORS(app)
-# Initialize MongoDB client
-mongo_uri = os.getenv("MONGO_URI")
+mongo_db = get_mongo_db()
 
-client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
-db = client["Booking-App-VGI"]
-user_trip_details = db["user_trip_details"]
+user_trip_details = mongo_db["user_trip_details"]
 
-# Define the route to accept user data
-@app.route("/api/book-trip", methods=["POST"])
+
 def book_trip():
     # Get data from the request
     user_data = request.json
@@ -39,6 +30,3 @@ def book_trip():
     # Return a success response
     return jsonify({"message": "Booking created successfully!", "booking_id": str(result.inserted_id)}), 201
 
-
-if __name__ == "__main__":
-    app.run(debug=True)

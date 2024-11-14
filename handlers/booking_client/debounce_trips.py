@@ -1,26 +1,15 @@
-from flask import Flask, request, jsonify
-from pymongo import MongoClient
-from flask_cors import CORS
+from flask import request, jsonify
 import re
-import certifi
+from extensions import get_mongo_db
+
+mongo_db = get_mongo_db()
+
+# MongoDB collections
+stop_times = mongo_db["stop_times"]
+user_trip_details = mongo_db["user_trip_details"]
+stops = mongo_db["stops"]
 
 
-# Initialize Flask app
-app = Flask(__name__)
-CORS(app)
-
-# Set up MongoDB connection
-MONGO_URI = "mongodb+srv://zainanwer24:osyP2q9A6L83y4Ku@booking-platform.w3axp.mongodb.net/"
-mongo_uri = MONGO_URI
-
-client = MongoClient(mongo_uri, tlsCAFile=certifi.where())
-db = client["Booking-App-VGI"]
-stop_times = db["stop_times"]
-user_trip_details = db["user_trip_details"]
-stops = db["stops"]
-
-
-@app.route("/debounce_search", methods=["POST"])
 def debounce_search():
     trip_details = request.json
     partial_stop = trip_details.get("partial_stop")
@@ -39,7 +28,3 @@ def debounce_search():
 
     # Return the found stop names (empty list if no matches)
     return jsonify(all_stops)
-
-
-if __name__ == "__main__":
-    app.run(debug=True)

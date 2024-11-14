@@ -1,31 +1,15 @@
-from flask import Flask, request, jsonify
-from pymongo import MongoClient
-from flask_cors import CORS
-import os
-import certifi
+from flask import jsonify
+from utils.get_bus_number import get_bus_number
+from extensions import get_mongo_db
+
+mongo_db = get_mongo_db()
 
 
-app = Flask(__name__)
-CORS(app)
+stop_times = mongo_db["stop_times"]
+user_trip_details = mongo_db["user_trip_details"]
+stops = mongo_db["stops"]
 
-# Initialize MongoDB client
-# mongo_uri = os.getenv("MONGO_URI")
-MONGO_URI="mongodb+srv://zainanwer24:osyP2q9A6L83y4Ku@booking-platform.w3axp.mongodb.net/"
-mongo_uri = MONGO_URI
 
-client = MongoClient(mongo_uri, tls=True, tlsCAFile=certifi.where())
-db = client["Booking-App-VGI"]
-stop_times = db["stop_times"]
-user_trip_details = db["user_trip_details"]
-stops = db["stops"]
-
-# util function
-def get_bus_number(trip_id):
-    trip_id = trip_id.split(":")
-    return trip_id[0]
-
-# Define the route to retrieve user data by user email
-@app.route("/api/get-trip/<email>", methods=["GET"])
 def get_trip(email):
     # Find the trip data by trip_id
     trips = user_trip_details.find({"email": email})
@@ -64,14 +48,10 @@ def get_trip(email):
         
         all_trips_data.append(trip_data)
 
-        print(all_trips_data)
+        # print(all_trips_data)
 
     # If there are trips found, return the details
     if all_trips_data:
         return jsonify({"message": "Trips found", "trips": all_trips_data}), 200
     else:
         return jsonify({"message": "No trips found for this email"}), 404
-    
-
-if __name__ == "__main__":
-    app.run() 
