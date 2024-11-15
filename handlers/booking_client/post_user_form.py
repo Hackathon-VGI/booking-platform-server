@@ -27,7 +27,8 @@ def book_trip():
         "departure_time": user_data.get("departure_time"),
         "arrival_date": user_data.get("arrival_date"),
         "arrival_time": user_data.get("arrival_time"),
-        "booking_id" : booking_id,
+        "booking_id": booking_id,
+        "bus_number": user_data.get("bus_number"),
 
         # when initialised, default status is pending
         "booking_status": "Pending"
@@ -35,4 +36,3 @@ def book_trip():
 
     # Return a success response
     return jsonify({"message": "Booking created successfully!", "booking_id": booking_id}), 201
-

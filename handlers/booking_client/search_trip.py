@@ -10,7 +10,6 @@ stop_times = mongo_db["stop_times"]
 stops = mongo_db["stops"]
 
 
-
 def search_trips():
     trip_details = request.json
 
@@ -45,6 +44,8 @@ def search_trips():
             trip["arrival_time"] = adjust_time(trip["arrival_time"])
             trip["available_seats"] = available_seats
 
+            bus_number = trip_id.split(':')[2]
+            trip["bus_number"] = bus_number
             # Compare times and seats
             if departure_time_seconds <= trip_departure_time_seconds and available_seats >= int(required_seats):
                 valid_routes.append(trip)

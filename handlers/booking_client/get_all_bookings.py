@@ -23,14 +23,18 @@ def get_trip(email):
         departure_time = trip.get("departure_time")
         arrival_time = trip.get("arrival_time")
 
-        departure_stop_id = stop_times.find_one({"departure_time":departure_time, "trip_id":trip_id}).get("stop_id")
-        arrival_stop_id = stop_times.find_one({"arrival_time":arrival_time, "trip_id":trip_id}).get("stop_id")
-        
+        departure_stop_id = stop_times.find_one(
+            {"departure_time": departure_time, "trip_id": trip_id}).get("stop_id")
+        arrival_stop_id = stop_times.find_one(
+            {"arrival_time": arrival_time, "trip_id": trip_id}).get("stop_id")
+
         departure_stop_id = str(departure_stop_id)
         arrival_stop_id = str(arrival_stop_id)
 
-        departure_stop_name = stops.find_one({"stop_id":departure_stop_id}).get("stop_name")
-        arrival_stop_name = stops.find_one({"stop_id":arrival_stop_id}).get("stop_name")
+        departure_stop_name = stops.find_one(
+            {"stop_id": departure_stop_id}).get("stop_name")
+        arrival_stop_name = stops.find_one(
+            {"stop_id": arrival_stop_id}).get("stop_name")
 
         # Remove the '_id' field before returning the data (optional)
         trip_data = {
@@ -43,9 +47,10 @@ def get_trip(email):
             "departure_time": trip.get("departure_time"),
             "arrival_date": trip.get("arrival_date"),
             "arrival_time": trip.get("arrival_time"),
-            "booking_status": trip.get("booking_status")
+            "booking_status": trip.get("booking_status"),
+            "bus_number": trip.get("bus_number")
         }
-        
+
         all_trips_data.append(trip_data)
 
         # print(all_trips_data)
