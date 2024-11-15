@@ -34,5 +34,5 @@ def book_trip():
     })
 
     # Return a success response
-    return jsonify({"message": "Booking created successfully!", "booking_id": result.get("booking_id")}), 201
+    return jsonify({"message": "Booking created successfully!", "booking_id": booking_id}), 201
 

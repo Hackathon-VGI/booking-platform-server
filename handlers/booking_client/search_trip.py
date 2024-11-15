@@ -22,7 +22,7 @@ def search_trips():
     required_seats = trip_details.get('required_seats')
 
     # flag for checking whether a stop is blocked or not
-    stop_status = stops.get("stop_blocked")
+    # stop_status = stops.get("stop_blocked")
 
     departure_time = trip_details.get('departure_time')
     departure_time_seconds = time_in_seconds(departure_time)
@@ -56,5 +56,5 @@ def search_trips():
         "departure_time": departure_time,
         "required_seats": required_seats,
         "departure_date": departure_date,
-        "stop_status": stop_status
+        # "stop_status": stop_status
     })
