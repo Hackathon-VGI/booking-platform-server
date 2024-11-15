@@ -14,7 +14,13 @@ booking_blueprint.route('/debounce_search', methods=['POST'])(debounce_search)
 
 booking_blueprint.route('/get_all_booking/<email>', methods=['GET'])(get_trip)
 
+booking_blueprint.route('/cancel_booking/', methods=['POST'])(cancel_booking)
+
 # admin dashboard api urls
 admin_blueprint.route('/get_all_stops', methods=['GET'])(get_all_stops)
+
 admin_blueprint.route('/toggle_stop_status/', methods=['POST'])(toggle_stop_status)
+
 admin_blueprint.route('/manage_bookings/', methods=['GET'])(manage_bookings)
+
+admin_blueprint.route('/review_booking/', methods=['POST'])(review_booking)

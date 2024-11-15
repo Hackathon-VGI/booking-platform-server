@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from config import Config
-from extensions import db, init_mongo
+from extensions import db
 from handlers.routes import booking_blueprint
 from handlers.routes import admin_blueprint
 
@@ -13,9 +13,6 @@ def create_app():
     
     # Initialize extensions
     db.init_app(app)
-    
-    # init_mongo()
-    # print("ME")# Initialize MongoDB client globally
     
     # Register blueprints
     app.register_blueprint(booking_blueprint, url_prefix='/api')
