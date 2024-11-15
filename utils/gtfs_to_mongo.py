@@ -1,34 +1,71 @@
+import os
 import pandas as pd
-from extensions import get_mongo_db
+from pymongo import MongoClient
+from dotenv import load_dotenv
 
+# Load environment variables
+load_dotenv()
+MONGO_URI = os.getenv("MONGO_URI")
 
-mongo_db = get_mongo_db()
-stops_collection = mongo_db['stops']
-stop_times_collection = mongo_db['stop_times']
+# MongoDB client setup
+# client = MongoClient(MONGO_URI)
+client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True)
 
-def import_gtfs_to_mongodb(stops_file, stop_times_file):
-    # Read stops.txt and stop_times.txt files into dataframes
+db = client['Booking-App-VGI']  # Specify your database name
+
+def import_gtfs_to_mongodb(stops_file, stop_times_file, transfers_file, trips_file, agency_file, calendar_file, calendar_dates_file, feed_info_file, routes_file):
+    # Read GTFS files into dataframes
     stops_df = pd.read_csv(stops_file)
     stop_times_df = pd.read_csv(stop_times_file)
+    transfers_df = pd.read_csv(transfers_file)
+    trips_df = pd.read_csv(trips_file)
+    agency_df = pd.read_csv(agency_file)
+    calendar_df = pd.read_csv(calendar_file)
+    calendar_dates_df = pd.read_csv(calendar_dates_file)
+    feed_info_df = pd.read_csv(feed_info_file)
+    routes_df = pd.read_csv(routes_file)
 
     # Convert dataframes to dictionaries
     stops_data = stops_df.to_dict(orient="records")
     stop_times_data = stop_times_df.to_dict(orient="records")
+    transfers_data = transfers_df.to_dict(orient="records")
+    trips_data = trips_df.to_dict(orient="records")
+    agency_data = agency_df.to_dict(orient="records")
+    calendar_data = calendar_df.to_dict(orient="records")
+    calendar_dates_data = calendar_dates_df.to_dict(orient="records")
+    feed_info_data = feed_info_df.to_dict(orient="records")
+    routes_data = routes_df.to_dict(orient="records")
 
-    # Clear previous data to avoid duplicates
-    stops_collection.delete_many({})
-    stop_times_collection.delete_many({})
+    # Add max_seats column with default value 35 to stop_times_data
+    for stop_time in stop_times_data:
+        stop_time['max_seats'] = 35
 
-    # Insert new data
-    stops_collection.insert_many(stops_data)
-    stop_times_collection.insert_many(stop_times_data)
+    # Insert data into MongoDB
+    collections = {
+        'stops': stops_data,
+        'stop_times': stop_times_data,
+        'transfers': transfers_data,
+        'trips': trips_data,
+        'agency': agency_data,
+        'calendar': calendar_data,
+        'calendar_dates': calendar_dates_data,
+        'feed_info': feed_info_data,
+        'routes': routes_data
+    }
+
+    for collection_name, data in collections.items():
+        collection = db[collection_name]
+        # Clear previous data to avoid duplicates
+        collection.delete_many({})
+        # Insert new data
+        collection.insert_many(data)
 
     print("Data imported successfully to MongoDB")
-
 # Example usage
-# import_gtfs_to_mongodb(r'C:\Users\anand\PycharmProjects\fletter\GTFS\stops.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\stop_times.txt')
+import_gtfs_to_mongodb(r'C:\Users\anand\PycharmProjects\fletter\GTFS\stops.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\stop_times.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\transfers.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\trips.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\agency.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\calendar.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\calendar_dates.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\feed_info.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\routes.txt')
 def get_all_stops():
     # Query the stops collection and retrieve all stop names
+    stops_collection = db['stops']
     stop_names = stops_collection.distinct("stop_name")  # Use 'distinct' to get unique stop names
     return stop_names
 
@@ -40,10 +77,13 @@ def find_trips(from_stop, to_stop):
     Args:
         from_stop (str): Name of the departure stop
         to_stop (str): Name of the destination stop
-    """ 
+    """
+    # Get the collections
+    stops_collection = db['stops']
+    stop_times_collection = db['stop_times']
 
     # Debug: Print the stop names we're searching for
-    # print(f"Searching for trips from '{from_stop}' to '{to_stop}'")
+    print(f"Searching for trips from '{from_stop}' to '{to_stop}'")
 
     # Get stop IDs for both stops
     # Convert stop_ids to both string and integer forms to handle different formats
@@ -69,14 +109,14 @@ def find_trips(from_stop, to_stop):
             to_stop_ids.append(stop['stop_id'])  # Keep original if can't convert
 
     # Debug: Print the stop IDs we found
-    # print(f"From stop IDs: {from_stop_ids}")
-    # print(f"To stop IDs: {to_stop_ids}")
+    print(f"From stop IDs: {from_stop_ids}")
+    print(f"To stop IDs: {to_stop_ids}")
 
     if not from_stop_ids:
-        # print(f"No stop found with name '{from_stop}'")
+        print(f"No stop found with name '{from_stop}'")
         return
     if not to_stop_ids:
-        # print(f"No stop found with name '{to_stop}'")
+        print(f"No stop found with name '{to_stop}'")
         return
 
     # Find all trip_ids that contain the departure stop
@@ -85,7 +125,7 @@ def find_trips(from_stop, to_stop):
     })
 
     # Debug: Print number of potential trips found
-    # print(f"Found {len(potential_trips)} potential trips")
+    print(f"Found {len(potential_trips)} potential trips")
 
     valid_trips = []
 
@@ -121,18 +161,78 @@ def find_trips(from_stop, to_stop):
                 break
 
     # Output results
-    # if valid_trips:
-    #     print(f"\nTrips from '{from_stop}' to '{to_stop}':")
-    #     for trip in valid_trips:
-    #         print(f"Trip ID: {trip['trip_id']}")
-    #         print(f"From Stop ID: {trip['from_stop_id']}")
-    #         print(f"To Stop ID: {trip['to_stop_id']}")
-    #         print(f"Departure: {trip['departure_time']}")
-    #         print(f"Arrival: {trip['arrival_time']}\n")
-    # else:
-    #     print(f"\nNo trips found from '{from_stop}' to '{to_stop}'.")
+    if valid_trips:
+        print(f"\nTrips from '{from_stop}' to '{to_stop}':")
+        for trip in valid_trips:
+            print(f"Trip ID: {trip['trip_id']}")
+            print(f"From Stop ID: {trip['from_stop_id']}")
+            print(f"To Stop ID: {trip['to_stop_id']}")
+            print(f"Departure: {trip['departure_time']}")
+            print(f"Arrival: {trip['arrival_time']}\n")
+    else:
+        print(f"\nNo trips found from '{from_stop}' to '{to_stop}'.")
 
     return valid_trips
+
+
+def get_possible_end_stops(from_stop):
+    """
+    Get all possible end stops that have a trip from the given stop.
+
+    Args:
+        from_stop (str): Name of the departure stop
+
+    Returns:
+        list: List of possible end stops
+    """
+    # Get the collections
+    stops_collection = db['stops']
+    stop_times_collection = db['stop_times']
+
+    # Get stop IDs for the from_stop
+    from_stops = list(stops_collection.find({"stop_name": from_stop}))
+    from_stop_ids = []
+
+    for stop in from_stops:
+        try:
+            from_stop_ids.append(str(stop['stop_id']))  # String version
+            from_stop_ids.append(int(stop['stop_id']))  # Integer version
+        except ValueError:
+            from_stop_ids.append(stop['stop_id'])  # Keep original if can't convert
+
+    if not from_stop_ids:
+        print(f"No stop found with name '{from_stop}'")
+        return []
+
+    # Find all trip_ids that contain the departure stop
+    potential_trips = stop_times_collection.distinct("trip_id", {
+        "stop_id": {"$in": from_stop_ids}
+    })
+
+    possible_end_stops = set()
+
+    # For each potential trip, get all stops and add to possible end stops
+    for trip_id in potential_trips:
+        trip_stops = list(stop_times_collection.find(
+            {"trip_id": trip_id}
+        ).sort("stop_sequence", 1))
+
+        from_stop_found = False
+
+        for stop in trip_stops:
+            current_stop_id = stop['stop_id']
+            if isinstance(current_stop_id, (int, float)):
+                current_stop_id = str(current_stop_id)
+
+            if str(current_stop_id) in [str(sid) for sid in from_stop_ids]:
+                from_stop_found = True
+            elif from_stop_found:
+                # Fetch the stop name from the stops collection using stop_id
+                end_stop = stops_collection.find_one({"stop_id": stop['stop_id']})
+                if end_stop:
+                    possible_end_stops.add(end_stop['stop_name'])
+
+    return list(possible_end_stops)
 
 
 # Available Functions:
@@ -144,7 +244,11 @@ def find_trips(from_stop, to_stop):
 # Example usage
 
 # Find trips between two stops
-find_trips("Am Westpark 1", "Klinikum")
+# find_trips("Am Westpark 1", "Klinikum")
 
 # Fetch and print all stop names
-all_stops = get_all_stops()
+# all_stops = get_all_stops()
+
+
+# possible_end_stops = get_possible_end_stops("Am Westpark 2")
+# print(possible_end_stops)
