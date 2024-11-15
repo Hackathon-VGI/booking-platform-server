@@ -21,6 +21,9 @@ def search_trips():
 
     required_seats = trip_details.get('required_seats')
 
+    # flag for checking whether a stop is blocked or not
+    stop_status = stops.get("stop_blocked")
+
     departure_time = trip_details.get('departure_time')
     departure_time_seconds = time_in_seconds(departure_time)
 
@@ -40,6 +43,7 @@ def search_trips():
 
             trip["departure_time"] = adjust_time(trip_departure_time)
             trip["arrival_time"] = adjust_time(trip["arrival_time"])
+            trip["available_seats"] = available_seats
 
             # Compare times and seats
             if departure_time_seconds <= trip_departure_time_seconds and available_seats >= int(required_seats):
@@ -51,5 +55,6 @@ def search_trips():
         "arrival_stop": arrival_stop,
         "departure_time": departure_time,
         "required_seats": required_seats,
-        "departure_date": departure_date
+        "departure_date": departure_date,
+        "stop_status": stop_status
     })

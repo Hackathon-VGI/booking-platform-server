@@ -3,6 +3,7 @@ from flask_cors import CORS
 from config import Config
 from extensions import db, init_mongo
 from handlers.routes import booking_blueprint
+from handlers.routes import admin_blueprint
 
 def create_app():
     app = Flask(__name__)
@@ -18,6 +19,7 @@ def create_app():
     
     # Register blueprints
     app.register_blueprint(booking_blueprint, url_prefix='/api')
+    app.register_blueprint(admin_blueprint, url_prefix='/admin')
     
     # Enable CORS
     CORS(app)
