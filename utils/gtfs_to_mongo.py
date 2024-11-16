@@ -13,6 +13,7 @@ client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True)
 
 db = client['Booking-App-VGI']  # Specify your database name
 
+
 def import_gtfs_to_mongodb(stops_file, stop_times_file, transfers_file, trips_file, agency_file, calendar_file, calendar_dates_file, feed_info_file, routes_file):
     # Read GTFS files into dataframes
     stops_df = pd.read_csv(stops_file)
@@ -62,11 +63,14 @@ def import_gtfs_to_mongodb(stops_file, stop_times_file, transfers_file, trips_fi
 
     print("Data imported successfully to MongoDB")
 # Example usage
-import_gtfs_to_mongodb(r'C:\Users\anand\PycharmProjects\fletter\GTFS\stops.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\stop_times.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\transfers.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\trips.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\agency.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\calendar.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\calendar_dates.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\feed_info.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\routes.txt')
+# import_gtfs_to_mongodb(r'C:\Users\anand\PycharmProjects\fletter\GTFS\stops.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\stop_times.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\transfers.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\trips.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\agency.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\calendar.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\calendar_dates.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\feed_info.txt', r'C:\Users\anand\PycharmProjects\fletter\GTFS\routes.txt')
+
+
 def get_all_stops():
     # Query the stops collection and retrieve all stop names
     stops_collection = db['stops']
-    stop_names = stops_collection.distinct("stop_name")  # Use 'distinct' to get unique stop names
+    # Use 'distinct' to get unique stop names
+    stop_names = stops_collection.distinct("stop_name")
     return stop_names
 
 
@@ -99,14 +103,16 @@ def find_trips(from_stop, to_stop):
             from_stop_ids.append(str(stop['stop_id']))  # String version
             from_stop_ids.append(int(stop['stop_id']))  # Integer version
         except ValueError:
-            from_stop_ids.append(stop['stop_id'])  # Keep original if can't convert
+            # Keep original if can't convert
+            from_stop_ids.append(stop['stop_id'])
 
     for stop in to_stops:
         try:
             to_stop_ids.append(str(stop['stop_id']))  # String version
             to_stop_ids.append(int(stop['stop_id']))  # Integer version
         except ValueError:
-            to_stop_ids.append(stop['stop_id'])  # Keep original if can't convert
+            # Keep original if can't convert
+            to_stop_ids.append(stop['stop_id'])
 
     # Debug: Print the stop IDs we found
     print(f"From stop IDs: {from_stop_ids}")
@@ -198,7 +204,8 @@ def get_possible_end_stops(from_stop):
             from_stop_ids.append(str(stop['stop_id']))  # String version
             from_stop_ids.append(int(stop['stop_id']))  # Integer version
         except ValueError:
-            from_stop_ids.append(stop['stop_id'])  # Keep original if can't convert
+            # Keep original if can't convert
+            from_stop_ids.append(stop['stop_id'])
 
     if not from_stop_ids:
         print(f"No stop found with name '{from_stop}'")
@@ -228,7 +235,8 @@ def get_possible_end_stops(from_stop):
                 from_stop_found = True
             elif from_stop_found:
                 # Fetch the stop name from the stops collection using stop_id
-                end_stop = stops_collection.find_one({"stop_id": stop['stop_id']})
+                end_stop = stops_collection.find_one(
+                    {"stop_id": stop['stop_id']})
                 if end_stop:
                     possible_end_stops.add(end_stop['stop_name'])
 
